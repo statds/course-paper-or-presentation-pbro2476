@@ -76,16 +76,16 @@
 
 
 \paragraph{Introduction}
-For my paper, I will be analyzing the association between air pollution and different types of mortality. Specifically, I will be researching the association between fine particulate matter (PM2.5) and mortality from cardiovascular disease, non-communicable respiratory disease, and malignant neoplasms. Previous research has demonstrated an association between air pollution and mortality in specific localities or municipalities\citep{dockery1993association}\citep{sunyer1996air}\citep{jerrett2005spatial}, and this paper seeks to build on this research with a focus on PM2.5 pollution.
+For my paper, I will be analyzing the association between air pollution and different types of mortality. Specifically, I will be researching the association between fine particulate matter (PM2.5) and mortality from cardiovascular disease, non-communicable respiratory disease, and malignant neoplasms. Previous research has demonstrated an association between air pollution and mortality in specific localities or municipalities\citep{dockery1993association}\citep{sunyer1996air}\citep{jerrett2005spatial}, and this paper seeks to build on this research with a focus on PM2.5 to analyze it's effect on global mortality.
 
 \paragraph{Specific Aims}
-The aims of my research paper will be to analyze the impact of air pollution on global public health by focusing on the association between PM2.5 pollution and mortality from cardiovascular disease, non-communicable respiratory disease, and malignant neoplasms. Specifically, I wish to analyze the impact of PM2.5 pollution on mortality caused by rheumatic heart disease, hypertensive heart disease, ischemic heart disease,, cerebrovascular disease, inflammatory heart diseases, chronic obstructive pulmonary disease, asthma, and trachea, bronchus, and lung cancers.
+The aims of my research paper will be to analyze the impact of air pollution on global public health by focusing on the association between PM2.5 pollution and mortality from cardiovascular disease, non-communicable respiratory disease, and malignant neoplasms. Specifically, I wish to analyze the impact of PM2.5 pollution on mortality caused by rheumatic heart disease, hypertensive heart disease, ischemic heart disease, chronic obstructive pulmonary disease, asthma, and trachea, bronchus, and lung cancers.
 
 \paragraph{Data}
-I will use the World Health Organization's Air Quality Database for my data on PM2.5 pollution prevalence by country.\citep{world health organization_2022} I will also use the World Health Organization's Mortality Database for my data on the prevalence of mortality from different types of cardiovascular illnesses, non-communicable respiratory illnesses, and malignant neoplasms.\citep{world health organization_2022} I will use the sex and age filters in the mortality database to control for sex and age covariates.
+I will use the World Health Organization's Air Quality Database for my data on PM2.5 pollution prevalence by country.\citep{world health organization_2022} I will also use the World Health Organization's Mortality Database for my data on the prevalence of mortality from cardiovascular illnesses, non-communicable respiratory illnesses, and malignant neoplasms in general. I will also analyze specific associations between PM2.5 pollution and rheumatic heart disease, hypertensive heart disease,  chronic obstructive pulmonary disease, asthma, and trachea, bronchus, and lung cancers..\citep{world health organization_2022} I will use the sex and age filters in the mortality database to control for sex and age covariates.
 
 \paragraph{Research Design and Methods}
-For my research design, using the data from the WHO, I will conduct a linear regression analysis to test for correlations between PM2.5 pollution and mortality from the aforementioned specific types of cardiovascular and respiratory illnesses. The model I will use is
+For my research design, using the data from the WHO, I will conduct a linear regression analysis to test for correlations between PM2.5 pollution and mortality from the aforementioned specific types of cardiovascular, respiratory illnesses, and malignant neoplasms. The model I will use is
 \[
   MOR = \beta_{0} + \beta_{1}POL + E
 \]
@@ -93,14 +93,16 @@ I will test for covariance between mortality, age, and sex by using the ANACOVA 
 \[
   MOR = \beta_{0} + \beta_{1}POL + \beta_{2}AGE + \beta_{3}SEX + E
 \]
+All calculations and statistical analyzes will be conducted in RStudio.
 
 \paragraph{Discussion}
-The discussion section of my paper will state the results and whether or not this is consistent with previous research. It will also discuss the previous research on the association between air pollution and mortality in detail. Furthermore, it will discuss the limitations of the study conducted and will explain how this research can be expanded upon. Lastly, it will discuss the real-world implications of the results for global public health and environmental sustainability.
+I expect to find an association between PM2.5 pollution and mortality from cardiovascular illness, respiratory illness, and malignant neoplasms because of the well documented association between air pollution and increased mortality risk from previous research. If associations are found between PM2.5air pollution and mortality from cardiovascular illness, respiratory illness, and malignant neoplasms, this would corroborate assumptions that there is an association between air pollution and mortality. If no such associations are found, this would challenge such assumptions. The results of this research paper could potentially have implications for global environmental policy when it comes to controlling PM2.5 pollution as well as for global public health practice pertaining to which populations are at higher risk of certain types of mortality.
 
 \paragraph{Conclusion}
-The conclusion of my paper will state which types of mortality were associated with PM2.5 pollution in each country, and whether or not this is consistent with previous research. I will summarize the my results concisely, listing the correlation coefficients and p-values, as well as if the results hold up after controlling for covariants.
+My research paper aims to demonstrate an association between PM2.5 air pollution and mortality from cardiovascular illness, respiratory illness, and malignant neoplasms. I will conduct linear regression analyses using data from the World Health Organization on PM2.5 pollution and mortality by country. This research can inform public health and environmental policies globally.
 
 \bibliographystyle{../manuscript/STAT3494_refs}
 \bibliographystyle{chicago}
 
 \end{document}
+
