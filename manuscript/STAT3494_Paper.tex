@@ -53,6 +53,7 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{amsthm}
+\usepackage[tight,footnotesize]{subfigure}
 \usepackage{graphicx}
 \usepackage{lipsum}
 \usepackage{listings}
@@ -98,23 +99,24 @@
 Air pollution has been consistently shown to be associated with mortality,
 specifically respiratory morbidity. Identifying associations between specific
 air pollutants and specific types of morbidity can inform future public health
-practice and public environmental policy globally.The aim of this paper was to
-build on this research with a contry-level analysis of the global effect of
+practice and public environmental policy globally. The aim of this paper was to
+build on this research with a country-level analysis of the global effect of
 PM2.5 pollution on three types of mortality: asthma, rheumatic heart disease,
 and hypertensive heart disease. Using a linear mixed effects model to control
-for covariates such as time, GDP per capita, and Sex, this paper found no
-significant associations between average PM2.5 concentration and the age
-standardized death rate from asthma, rheumatic heart disease or hypertensive
+for covariates such as time, GDP per capita, and Sex, this paper found a
+significant positive association between ambient PM2.5 concentration and the age
+standardized death rate from asthma, but a significant negative association
+between ambient PM2.5 concentration and the age standardized death rate from
 heart disease in each country.
 \end{abstract}
 
-\section{Introduction}
+\section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
 Air pollution is a serious public health and environmental issue, having been
 linked to over 6.5 million global deaths each year \citep{fuller2022pollution}.
 Previous research has demonstrated an association between air pollution and
-mortality in specific localities or municipalities \citep{dockery1993association,
-sunyer1996air, jerrett2005spatial, analitis2006short}. When talking specifically
+mortality in specific localities or municipalities\citep{dockery1993association,
+sunyer1996air, jerrett2005spatial, analitis2006short}.When talking specifically
 about particulate matter, some studies have demonstrated an association between
 particulate matter pollution and respiratory and cardiovascular deaths
 \citep{analitis2006short}. However, other studies have found no significant
@@ -131,7 +133,7 @@ account for the effects of sex, time, and GDP per capita, this study aims to
 analyze the association between ambient PM2.5 concentration and mortality from
 asthma, hypertensive heart disease, and rheumatic heart disease.
 
-\section{Data}
+\section*{Data}
 \addcontentsline{toc}{section}{Data}
 The data for this analysis was compiled from the WHO's Ambient Air Quality
 Database \citep{who2022airquality}, the WHO's Mortality Database
@@ -154,9 +156,15 @@ Methodology. Since the data on ambient particulate matter pollution ranged from
 2010 to 2016, this was the period that was analyzed for all datasets. The WHO
 datasets on air quality and mortality help to answer for associations between
 ambient PM2.5 air pollution and mortality from asthma, rheumatic heart disease,
+and hypertensive heart disease. These datasets were uploaded into RStudio and
+were combined and ordered by corresponding year and country name so that analyses
+could be more easily conducted. This combined dataframe was used to conduct this
+regression analysis. Since three types of mortality were analyzed, there were
+three subsets of data with the responses variables for each being mortality
+rate from asthma, rheumatic heart disease, and hypertensive heart disease.
 
 
-\section{Methods}
+\section*{Methods}
 \addcontentsline{toc}{section}{Methods}
 The three datasets were compiled into one dataframe in RStudio where all
 statistical analyses were conducted. Since the air quality database only included
@@ -175,70 +183,276 @@ effects of sex, time, and GDP per capita such that:
 \[
  + \beta_{7}(POL)(GDP) + E
 \]
+
 I did this using the lmer function in RStudio using the lme4 package in RStudio.
 Running this model for the compiled dataframe yielded the point estimates for
 the slopes and intercepts as well as the standard error for each. I was able to
 find the p-values for each explanatory variable using the formula
 \[
-  p-value = 2(1 - \phi(|t-value|)
+  p-value = 2(1 - \phi(|t-value|))
 \]
-where \begin{math}\phi(Z)\end{math} is the CDF of a standard normal random
-variable.
 
-\section{Results}
+
+\begin{figure}[t]
+\includegraphics[scale=0.6]{boxcox.pdf}
+\centering
+\caption{Box-Cox Normal Probability Plot}
+\label{fig:Figure 1}
+    \vspace{1cm}
+\end{figure}
+\begin{figure}[t]
+\includegraphics[scale=0.5]{scatterplotmatrix.asthma.pdf}
+\centering
+\caption{Scatter plot matrix for asthma dataset (Value is PM2.5 concentration)}
+\label{fig:Figure 2}
+    \vspace{1cm}
+\end{figure}
+
+\begin{figure}[t]
+\includegraphics[scale=0.5]{scatterplotmatrix.rheum.pdf}
+\centering
+\caption{Scatter plot matrix for rheumatic heart disease dataset (Value is PM2.5 concentration)}
+\label{fig:Figure 3}
+    \vspace{1cm}
+\end{figure}
+
+\begin{figure}[t]
+\includegraphics[scale=0.5]{scatterplotmatrix.hyper.pdf}
+\centering
+\caption{Scatter plot matrix for hypertensive heart disease dataset (Value is PM2.5 concentration)}
+\label{fig:Figure 4}
+    \vspace{1cm}
+\end{figure}
+
+\begin{figure}[t]
+\includegraphics[scale=0.5]{influenceplot.pdf}
+\centering
+\caption{Influence plot of mixed effects models for asthma (top), rheumatic heart
+disease (middle), and hypertensive heart disease (bottom)}
+\label{fig:Figure 5}
+    \vspace{1cm}
+\end{figure}
+
+where \begin{math}\phi(Z)\end{math} is the CDF of a standard normal random
+variable. In order to perform this regression analysis, regression diagnostics
+had to be conducted.\par
+
+First, the normality assumption was checked using the
+Shapiro-Wilk Test of Normality. Performing this test on the dataset containing
+death rates from asthma yielded a test statistic of W = 0.83355
+(\begin{math}p<\end{math}2.2e-16).Performing this test on the dataset containing
+death rates from rheumatic heart disease yielded a test statistic of W = 0.64097
+(\begin{math}p<\end{math}2.2e-16). Performing this test on the dataset containing
+death rates from hypertensive heart disease yielded a test statistic of
+W = 0.32637 (\begin{math}p<\end{math}2.2e-16). This indicated that a power
+transformation of the response variable may be necessary. Applying the Box-Cox
+transformation to each of the mixed effects models yieled a power estimate of
+\begin{math}\lambda=0.02754374\end{math} (\autoref{fig:Figure 1}). Using this
+power transformation, a new linear mixed effects model was derived:
+
+\[
+  MOR^{\lambda} = \beta_{0} + \beta_{1}POL + \beta_{2}SEX + \beta_{3}TIME +\beta_{4}GDP
+  + \beta_{5}(POL)(SEX) + \beta_{6}(POL)(TIME)
+\]
+\[
+ + \beta_{7}(POL)(GDP) + E
+\]
+
+\par Then, the equal variance assumption was analyzed among the datasets. The
+Bartlett test was used to test for heteroskedasticity between the predictor
+variables (except for sex) and the response variable. For the asthma dataset,
+the Bartlett test indicated heteroscadesticity between the response, age
+standardized death rate per 100,000, and all the predictors. For the rheumatic
+heart disease dataset,the Bartlett test indicated heteroscadesticity between the
+response and all the predictors except for year. For the hypertensive heart
+disease dataset, the Bartlett test indicated heteroscadesticity between the
+response and all the predictors. Since the data violated the homoscadesticity
+assumption, different weights were needed for the predictor variables. The weights
+were derived by first calculating the residuals and fitted values for each regression
+model, where fitted values are defined as
+
+\[
+  \hat{MOR_i} = \hat{\beta_{0}} + \hat{\beta_{1}}POL_i + \hat{\beta_{2}}SEX_i +
+  \hat{\beta_{3}}TIME_i +\hat{\beta_{4}}GDP_i + \hat{\beta_{5}}(POL_i)(SEX_i)
+\]
+\[
++ \hat{\beta_{6}}(POL_i)(TIME_i) + \hat{\beta_{7}}(POL_i)(GDP_i)
+\]
+
+and residuals are \begin{math}\epsilon_i = MOR_i^{\lambda}-\hat{MOR_i^{\lambda}}
+\end{math}. Once these values were calculated, a simple linear regression between
+the two was of the form \begin{math}|\epsilon| = \gamma_0 + \gamma_1\hat{MOR^
+{\lambda}}\end{math} was derived, for which fitted values were found using the
+formula
+
+\[
+\hat{|\epsilon_i|} = \hat{\gamma_0} + \hat{\gamma_1}\hat{MOR_i^
+{\lambda}}
+\]
+
+Weights for each observation were calculated using the formula
+
+\[
+weight = \frac{1}{\hat{|\epsilon_i|}^2}
+\]
+
+and then these weights were factored into the linear mixed effects model for
+each morbidity.
+\par We then tested the linearity assumption by plotting partial
+residual plots for all of the predictor and response variables
+(\autoref{fig:Figure 2}, \autoref{fig:Figure 3}, \autoref{fig:Figure 4}). Based
+on the partial residual plots, the linearity assumption was not noticeably
+violated by the data. Lastly, we looked for influential observations which may
+skew the data. Lastly, we tested for influential observations using Cook's
+distance (\autoref{fig:Figure 5}). Using Bonferroni's outlier test, studentized
+residuals with Bonferroni \begin{math}p < \end{math}0.05 were found in each
+dataset and those observations were removed from the analysis.
+
+\section*{Results}
 \addcontentsline{toc}{section}{Results}
 Using the linear mixed effect model with the given covariates, point estimates
 for the slopes of each explanatory variable were obtained as well as the standard
 error for each. Utilizing the given formula for the p-value, the significance of
 each explanatory variable in predicting the response variable, age standardized
-mortality rate per 100,000, was analyzed. After each of these processes were
-conducted in order to control for covariates, no significant association was
+mortality rate per 100,000, was analyzed. After all processes were
+conducted in order to control for covariates, significant associations were
 found between a given country's average ambient PM2.5 air concentration and
 the mortality rate from asthma, rheumatic heart disease, or hypertensive heart
-disease. Although the regression for asthma was close to significance, a
-p-value of 0.05655668, which is greater than the significance level of
+disease.\par
+
+The mixed effect model regression for asthma yielded a significant
+positive association between PM2.5 pollution and the death rate from asthma
+(F=47.0453, p=0.0002, \autoref{tab:table2}), which is less
+than the significance level of \begin{math}\alpha = 0.05\end{math}. In that
+regression, GDP per capita was a significant predictor of country-level death rate
+from asthma (\begin{math}p<\end{math}0.0001), though time and sex weren't
+significant predictors, as p-values of 0.0819 and 0.2069 were yielded
+respectively. In contrast, the mixed effect model regression for rheumatic heart
+disease yielded a significant negative association between PM2.5 pollution and
+the death rate from asthma (F=2.4405, p=0.0057, \autoref{tab:table4}), which is
+less than the significance level of \begin{math}\alpha = 0.05\end{math}. In that
+regression, GDP per capita and sex were significant predictors, as p-values of
+\begin{math}p<\end{math}0.0001 were yielded for both, though time was not a
+significant predictor (p=0.1389). Likewise, the mixed effect model regression for
+hypertensive heart disease yielded a significant negative association between
+PM2.5 pollution and the death rate from asthma (F=0.0051, p=0.0096,
+\autoref{tab:table6}), which is greater than the significance level of
 \begin{math}\alpha = 0.05\end{math}. In that regression, GDP per capita and sex
-were significant predictors of country-level death rate from asthma, as p-values
-of \begin{math}6.591323\times10^{-3}\end{math} and
-\begin{math}1.864832\times10^{-8}\end{math} were yielded respectively, though
-time wasn't a significant predictor (p = 0.5332043). In the regression for
-rheumatic heart disease, ambient PM2.5 air concentration and sex weren't
-significant predictors of death rate with p-values of 0.5672925 and 0.1325090
-respectively, but GDP per capita and time were, with p-values of
-\begin{math}1.278235\times10^{-6}\end{math} and
-0.2180579 respectively. In the regression for hypertensive heart disease,
-ambient PM2.5 air concentration and time weren't significant predictors of death
-rate with p-values of 0.3058979844 and 0.4970754156 respectively, but GDP per
-capita and sex were, with p-values of 0.0005376261 and 0.0000000000 respectively.
+were significant predictors, as p-values of \begin{math}p<\end{math}0.0001 were
+yielded for both, though time was not a significant predictor (p=0.8937).
 
-\begin{figure}[t]
-\includegraphics[scale=0.5]{asthma.chart.pdf}
-  \centering
-  \caption{Significance of explanatory variables on age standardized death rate
-  from asthma in mixed effects model. PM2.5 pollution (Value) and Time (Period)
-  aren't significant predictors but sex and GDP per capita are at the
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c | c c c c|}
+\toprule
+Parameter & Estimate & Standard Error & T-value & P-value \\ [0.5ex]
+\midrule
+(Intercept) &	2.1357 &	0.6466 &	3.3030 &	0.0010 \\
+PM2.5 Concentration &	0.0003 &	0.0001 &	3.7653 &	0.0002 \\
+GDP per capita &	-5.63e-07	 &	0.0000 &	-9.9249 &	0.0000 \\
+Period &	-0.0006 &	0.0003 &	-1.7396 &	0.0819 \\
+Sex &	0.0014 &	0.0011 &	1.2621 &	0.2069 \\ [1ex]
+\bottomrule
+\end{tabular}
+\label{tab:table1}
+\caption{Significance of explanatory variables on age standardized death rate
+  from asthma in mixed effects model. Sex and Time (Period) aren't significant
+  predictors but PM2.5 pollution (Value) and GDP per capita are at the
   \begin{math}\alpha = 0.05\end{math} significance level.}
-\end{figure}
+\end{table}
 
-\begin{figure}[t]
-\includegraphics[scale=0.5]{rheum.chart.pdf}
-  \centering
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c | c c c c|}
+\toprule
+Parameter & df & SSR & MSR & F \\ [0.5ex]
+\midrule
+PM2.5 Concentration & 1 & 0.0150351 & 0.0150351 & 47.0453 \\
+GDP per capita & 1 & 0.0314527 & 0.0314527 & 98.4167 \\
+Period & 1 & 0.0009657 & 0.0009657 & 3.0216 \\
+Sex & 1 & 0.0005090 & 0.0005090 & 1.5928 \\ [1ex]
+\bottomrule
+\end{tabular}
+\label{tab:table2}
+\caption{ANOVA table for regression of PM2.5 concentration on mortality from
+asthma}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c | c c c c|}
+\toprule
+Parameter & Estimate & Standard Error & T-value & P-value \\ [0.5ex]
+\midrule
+Intercept &	2.0642 &	0.7159 &	2.8834 &	0.0039 \\
+PM2.5 Concentration &	-0.0002 &	0.0001 &	-2.7671 &	0.0057 \\
+GDP per capita &	-1.97e-07		 &	0.0000 &	-4.7579 &	0.0000 \\
+Period &	-0.0005 &	0.0004 &	-1.4798 &	0.1389 \\
+Sex &	-0.0053 &	0.0007 &	-7.3443 &	0.0000 \\[1ex]
+\bottomrule
+\end{tabular}
+\label{tab:table3}
   \caption{Significance of explanatory variables on age standardized death rate
-  from rheumatic heart disease in mixed effects model. PM2.5 pollution (Value)
-  and Time (Period) aren't significant predictors but sex and GDP per capita are
+  from rheumatic heart disease in mixed effects model. Time (Period) isn't a
+  significant predictor but PM2.5 pollution (Value), sex and GDP per capita are
   at the \begin{math}\alpha = 0.05\end{math} significance level.}
-\end{figure}
+\end{table}
 
-\begin{figure}[t]
-\includegraphics[scale=0.5]{hyper.chart.pdf}
-  \centering
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c | c c c c|}
+\toprule
+Parameter & df & SSR & MSR & F \\ [0.5ex]
+\midrule
+Value & 1 & 0.002132 & 0.002132 & 2.4405 \\
+GDP.per.capita & 1 & 0.019769 & 0.019769 & 22.6307 \\
+Period & 1 & 0.001969 & 0.001969 & 2.2540 \\
+Sex & 1 & 0.047117 & 0.047117 & 53.9387 \\ [1ex]
+\bottomrule
+\end{tabular}
+\label{tab:table4}
+\caption{ANOVA table for regression of PM2.5 concentration on mortality from
+rheumatic heart disease}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c | c c c c|}
+\toprule
+Parameter & Estimate & Standard Error & T-value & P-value \\ [0.5ex]
+\midrule
+Intercept &	1.1360 &	0.9242 &	1.2291 &	0.2190 \\
+PM2.5 Concentration &	-0.0003 &	0.0001 &	-2.5896 &	0.0096 \\
+GDP per capita &	-4.61e-07 &	0.0000 &	-8.9911 &	0.0000 \\
+Period &	-0.0001 &	0.0005 &	-0.1336 &	0.8937 \\
+Sex &	0.0718  &	0.0015 &	47.6318 &	0.0000 \\ [1ex]
+\bottomrule
+\end{tabular}
+\label{tab:table5}
   \caption{Significance of explanatory variables on age standardized death rate
-  from hypertensive heart disease in mixed effects model. PM2.5 pollution (Value)
-  and sex aren't significant predictors but Time (Period) and GDP per capita are
+  from hypertensive heart disease in mixed effects model. Time (Period) isn't a
+  significant predictor but PM2.5 pollution (Value), sex and GDP per capita are
   at the \begin{math}\alpha = 0.05\end{math} significance level.}
-\end{figure}
+\end{table}
 
-\section{Discussion}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c | c c c c|}
+\toprule
+Parameter & df & SSR & MSR & F \\ [0.5ex]
+\midrule
+PM2.5 Concentration & 1 & 0.0000 & 0.0000 & 0.0051 \\
+GDP per capita & 1 & 0.2924 & 0.2924 & 104.1244 \\
+Period & 1 & 0.0000 & 0.0000 & 0.0015 \\
+Sex & 1 & 6.3712 & 6.3712 & 2268.7877 \\ [1ex]
+\bottomrule
+\end{tabular}
+\label{tab:table6}
+\caption{ANOVA table for regression of PM2.5 concentration on mortality from
+hypertensive heart disease}
+\end{table}
+
+\section*{Discussion}
 The association between air pollution and mortality has been the topic of
 scienticic inquiry for a long time, and many studies and analyses have been
 conducted in order to elucidate the association between the two
@@ -269,7 +483,8 @@ these limitations, this study adds to the plethora of literature that exists on
 the subject of air pollution and mortality, helping to inform public health and
 public policy in the future.
 
-\bibliography{STAT3494_refs}
+\bibliographystyle{../manuscript/STAT3494_refs}
 \bibliographystyle{chicago}
 
 \end{document}
+
