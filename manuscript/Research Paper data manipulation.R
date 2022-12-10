@@ -37,6 +37,10 @@ total.hyper <- merge(hyper, GDP, by=c("Period","SpatialDimValueCode"))
 
 #control for sex, time trends and GDP per capita
 
+
+
+#control for sex, time trends and GDP per capita
+
 model.asthma <- lmer(Age.standardized.death.rate.per.100.000.standard.population
                      ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value)
                         + (0 + Sex|Value) + (0 + Period|Value), total.asthma)
@@ -63,5 +67,39 @@ anova(model.hyper)
 coef.hyper <- data.frame(coef(summary(model.hyper)))
 coef.hyper$p.value <- 2 * (1 - pnorm(abs(coef.hyper$t.value)))
 coef.hyper
+
+library(gridExtra)
+grid.table(coef.asthma)
+grid.table(coef.rheum)
+
+pdf("boxcox.pdf")
+boxcox(hyper0, lambda = seq(-1, 1, length = 10))
+dev.off()
+
+pdf("scatterplotmatrix.asthma.pdf")
+scatterplotMatrix(~ Death.rate.transform + Value +
+                    GDP.per.capita + Period , total.asthma.pos,
+                  spread=FALSE, smoother.args=list(lty=2))
+dev.off()
+
+
+pdf("scatterplotmatrix.rheum.pdf")
+scatterplotMatrix(~ Death.rate.transform + Value +
+                                         GDP.per.capita + Period , total.rheum.pos,
+                                       spread=FALSE, smoother.args=list(lty=2))
+dev.off()
+
+pdf("scatterplotmatrix.hyper.pdf")
+scatterplotMatrix(~ Death.rate.transform + Value +
+                    GDP.per.capita + Period , total.hyper.pos,
+                  spread=FALSE, smoother.args=list(lty=2),)
+dev.off()
+
+pdf("influenceplot.pdf")
+par(mfrow=c(3,1))
+influencePlot(wls.asthma, id=list(method="identify") )
+influencePlot(wls.rheum, id=list(method="identify") )
+influencePlot(wls.hyper, id=list(method="identify") )
+dev.off()
 
 
