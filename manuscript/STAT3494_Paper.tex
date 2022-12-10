@@ -1,4 +1,54 @@
-\documentclass[12pt, letterpaper, twoside]{article}
+\documentclass[12pt, letterpaper, twoside]{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
 
 \usepackage{amsmath}
 \usepackage{booktabs}
@@ -40,10 +90,12 @@
 
 \doublespacing
 
+\setlength\parindent{24pt}
+
 \title{Country-Level Association Between Particulate Matter Air Pollution and Mortality}
 \author{Patrick Brogan\\[1ex]
   Department of Statistics, University of Connecticut\\}
-
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
 \maketitle
@@ -70,11 +122,14 @@ linked to over 6.5 million global deaths each year \citep{fuller2022pollution}.
 Previous research has demonstrated an association between air pollution and
 mortality in specific localities or municipalities\citep{dockery1993association,
 sunyer1996air, jerrett2005spatial, analitis2006short}. When talking specifically
-about particulate matter, some studies have demonstrated an association between
-particulate matter pollution and respiratory and cardiovascular deaths
-\citep{analitis2006short}. However, other studies have found no significant
-relationship between particulate matter pollution and the morbidity and
-mortality rate \citep{khojasteh2021long}.\par
+about particulate matter, ambient particulate matter pollution is attributable
+to 4.14 million (95\% CI: 3.45–4.8 million) global deaths in 2019 alone
+\citep{fuller2022pollution}. This opens up the question of what types of
+mortality are most heavily associated with ambient PM2.5 pollution. Some studies
+have demonstrated an association between ambient particulate matter pollution
+and respiratory and cardiovascular deaths \citep{analitis2006short}. However,
+other studies have found no significant relationship between particulate matter
+pollution and the morbidity and mortality rate \citep{khojasteh2021long}.\par
 
 The aim of this study is to analyze
 the association between ambient PM2.5 air pollution in ppm and mortality from
@@ -83,10 +138,15 @@ level rather than at the municipal level. Though previous literature analyzing
 global air pollution and mortality has found significant associations between
 the two, there has not yet been an analysis focusing specifically on ambient
 PM2.5 air pollution and mortality from asthma, rheumatic heart disease, and
-hypertensive heart disease globally. Using a linear mixed effects model to
-account for the effects of sex, time, and GDP per capita, this study aims to
-analyze the association between ambient PM2.5 concentration and mortality from
-asthma, hypertensive heart disease, and rheumatic heart disease.
+hypertensive heart disease globally. According to the Lancet Commission on
+pollution and health \citep{khojasteh2021long}, there is a substantial gap
+between males and females in the annual mortality due to ambient PM2.5 pollution,
+as 1.70 million (1.38–2.01) females died	in 2019 versus 2.44 million
+(2.02–2.83 million) males; this indicated that sex would need to be controlled
+for. Using a linear mixed effects model to account for the effects of sex, time,
+and GDP per capita, this study aims to analyze the association between ambient
+PM2.5 concentration and mortality from asthma, hypertensive heart disease, and
+rheumatic heart disease.
 
 \section*{Data}
 \addcontentsline{toc}{section}{Data}
@@ -264,7 +324,17 @@ violated by the data. Lastly, we looked for influential observations which may
 skew the data. Lastly, we tested for influential observations using Cook's
 distance (\autoref{fig:Figure 5}). Using Bonferroni's outlier test, studentized
 residuals with Bonferroni \begin{math}p < \end{math}0.05 were found in each
-dataset and those observations were removed from the analysis.
+dataset and those observations were removed from the analysis. The final models
+used were equivalent to the general code:
+
+\begin{lstlisting}[language=R]
+final <- lmer(Death.rate^lambda ~ PM2.5
++ GDP.per.capita + Period + Sex
++ (0 + GDP.per.capita|PM2.5)
++ (0 + Sex|PM2.5)
++ (0 + Period|PM2.5),
+data, weights)
+\end{lstlisting}
 
 \section*{Results}
 \addcontentsline{toc}{section}{Results}
@@ -446,4 +516,3 @@ public policy in the future.
 \bibliographystyle{chicago}
 
 \end{document}
-
