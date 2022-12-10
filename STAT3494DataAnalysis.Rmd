@@ -1,0 +1,342 @@
+---
+title: "STAT 3494 Data Analysis"
+author: "Patrick Brogan"
+date: "2022-11-28"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(lme4)
+library(plyr)
+library(dplyr)
+library(car)
+library(MASS)
+library(lmtest)
+```
+
+## Rounding
+
+```{r}
+round_df <- function(x, digits) {
+    # round all numeric variables
+    # x: data frame 
+    # digits: number of digits to round
+    numeric_columns <- sapply(x, mode) == 'numeric'
+    x[numeric_columns] <-  round(x[numeric_columns], digits)
+    x
+}
+```
+
+## Data Entry
+
+### Asthma
+
+```{r}
+asthma.sex <- data.frame(Asthma_Sex)
+colnames(asthma.sex)
+colnames(asthma.sex)[3] = "SpatialDimValueCode"
+colnames(asthma.sex)[5] = "Period"
+asthma <- merge(PM.data, asthma.sex, by=c("Period","SpatialDimValueCode"))
+GDP <- data.frame(GDP_Per_Capita)
+colnames(GDP)[2] = "SpatialDimValueCode"
+total.asthma <- merge(asthma, GDP, by=c("Period","SpatialDimValueCode"))
+asthma.data <- transform(total.asthma, Value_cs=scale(Value), GDP_cs=scale(GDP.per.capita), Period_cs=scale(Period))
+```
+
+### Rheumatic Heart Disease
+
+```{r}
+rheum.sex <- data.frame(Rheum_Sex)
+colnames(rheum.sex)
+colnames(rheum.sex)[3] = "SpatialDimValueCode"
+colnames(rheum.sex)[5] = "Period"
+rheum <- merge(PM.data, rheum.sex, by=c("Period","SpatialDimValueCode"))
+total.rheum <- merge(rheum, GDP, by=c("Period","SpatialDimValueCode"))
+rheum.data <- transform(total.rheum, Value_cs=scale(Value), GDP_cs=scale(GDP.per.capita), Period_cs=scale(Period))
+```
+
+### Hypertensive Heart Disease
+
+```{r}
+hyper.sex <- data.frame(Hyper_Sex)
+colnames(hyper.sex)
+colnames(hyper.sex)[3] = "SpatialDimValueCode"
+colnames(hyper.sex)[5] = "Period"
+hyper <- merge(PM.data, hyper.sex, by=c("Period","SpatialDimValueCode"))
+total.hyper <- merge(hyper, GDP, by=c("Period","SpatialDimValueCode"))
+hyper.data <- transform(total.hyper, Value_cs=scale(Value), GDP_cs=scale(GDP.per.capita), Period_cs=scale(Period))
+```
+
+## Control for sex, time trends and GDP per capita
+
+### Asthma
+
+```{r}
+total.asthma.pos <- subset(asthma.data, Age.standardized.death.rate.per.100.000.standard.population>0)
+model.asthma <- lmer(Age.standardized.death.rate.per.100.000.standard.population
+                     ~ Value_cs + GDP_cs + Period_cs + Sex + (0 + GDP_cs|Value_cs)
+                        + (0 + Sex|Value_cs) + (0 + Period_cs|Value_cs), total.asthma.pos)
+asthma0 <- lm(Age.standardized.death.rate.per.100.000.standard.population
+                    ~ Value*GDP.per.capita*Period*Sex, total.asthma)
+```
+
+### Rheumatic Heart Disease
+
+```{r}
+total.rheum.pos <- subset(rheum.data, Age.standardized.death.rate.per.100.000.standard.population>0)
+model.rheum <- lmer(Age.standardized.death.rate.per.100.000.standard.population
+                     ~ Value_cs + GDP_cs + Period_cs + Sex + (0 + GDP_cs|Value_cs)
+                        + (0 + Sex|Value_cs) + (0 + Period_cs|Value_cs), total.rheum.pos)
+rheum0 <- lm(Age.standardized.death.rate.per.100.000.standard.population
+                    ~ Value*GDP.per.capita*Period*Sex, total.rheum)
+```
+
+### Hypertensive Heart Disease
+
+```{r}
+total.hyper.pos <- subset(hyper.data, Age.standardized.death.rate.per.100.000.standard.population>0)
+model.hyper <- lmer(Age.standardized.death.rate.per.100.000.standard.population
+                     ~ Value_cs + GDP_cs + Period_cs + Sex + (0 + GDP_cs|Value_cs)
+                        + (0 + Sex|Value_cs) + (0 + Period_cs|Value_cs), total.hyper.pos)
+hyper0 <- lm(Age.standardized.death.rate.per.100.000.standard.population
+                    ~ Value*GDP.per.capita*Period*Sex, total.hyper.pos)
+```
+
+## Checking Normality
+
+### Asthma
+
+```{r}
+summ.asthma <- summary(model.asthma)
+shapiro.test(summ.asthma$residuals)
+asthma.data <- na.omit(total.asthma)
+qqnorm(summ.asthma$residuals)
+qqline(summ.asthma$residuals)
+boxcox(hyper0, lambda = seq(-1, 1, length = 10))
+powerTransform(hyper0, family="bcPower")
+asthma.power <- 0.02754374
+model.asthma.trans <- lmer(Age.standardized.death.rate.per.100.000.standard.population^asthma.power
+                    ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value)
+                    + (0 + Sex|Value) + (0 + Period|Value), total.asthma.pos)
+summary(model.asthma.trans)
+anova(model.asthma.trans)
+coef.asthma <- data.frame(coef(summary(model.asthma.trans)))
+coef.asthma$p.value <- 2 * (1 - pnorm(abs(coef.asthma$t.value)))
+coef.asthma
+```
+
+We can reject the null hypothesis and conclude that the normality assumption is violated.Therefore, a power transform is required.
+
+### Rheumatic Heart Disease
+
+```{r}
+summ.rheum <- summary(model.rheum)
+shapiro.test(summ.rheum$residuals)
+rheum.data <- na.omit(total.rheum)
+qqnorm(summ.rheum$residuals)
+qqline(summ.rheum$residuals)
+rheum.power <- 0.02754374
+model.rheum.trans <- lmer(Age.standardized.death.rate.per.100.000.standard.population^hyper.power
+                    ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value)
+                    + (0 + Sex|Value) + (0 + Period|Value), total.rheum.pos)
+summary(model.hyper.trans)
+anova(model.hyper.trans)
+coef.rheum <- data.frame(coef(summary(model.hyper.trans)))
+coef.rheum$p.value <- 2 * (1 - pnorm(abs(coef.rheum$t.value)))
+coef.rheum
+```
+
+We can reject the null hypothesis and conclude that the normality assumption is violated. Therefore, a power transform is required.
+
+### Hypertensive Heart Disease
+
+```{r}
+summ.hyper <- summary(model.hyper)
+shapiro.test(summ.hyper$residuals)
+hyper.data <- na.omit(total.hyper)
+qqnorm(summ.hyper$residuals)
+qqline(summ.hyper$residuals)
+boxcox(hyper0, lambda = seq(-1, 1, length = 10))
+powerTransform(hyper0, family="bcPower")
+hyper.power <- 0.02754374
+model.hyper.trans <- lmer(Age.standardized.death.rate.per.100.000.standard.population^hyper.power
+                    ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value)
+                    + (0 + Sex|Value) + (0 + Period|Value), total.hyper.pos)
+summary(model.hyper.trans)
+anova(model.hyper.trans)
+coef.hyper <- data.frame(coef(summary(model.hyper.trans)))
+coef.hyper$p.value <- 2 * (1 - pnorm(abs(coef.hyper$t.value)))
+round_df(coef.hyper, 4)
+```
+
+We can reject the null hypothesis and conclude that the normality assumption is violated. Therefore, a power transform is required.
+
+## Checking Equal Variance
+
+### Asthma
+
+```{r}
+bartlett.test((total.asthma$Age.standardized.death.rate.per.100.000.standard.population)^asthma.power ~ total.asthma$Value)
+bartlett.test((total.asthma$Age.standardized.death.rate.per.100.000.standard.population)^asthma.power ~ total.asthma$GDP.per.capita)
+bartlett.test((total.asthma$Age.standardized.death.rate.per.100.000.standard.population)^asthma.power ~ total.asthma$Period)
+summ.asthma.t <- summary(model.asthma.trans)
+fit.asthma <- fitted(model.asthma.trans)
+a.residuals <- summ.asthma.t$residuals
+asthma.resfit <- data.frame(a.residuals, fit.asthma)
+asthma.resfit.lm <- lm(abs(a.residuals) ~ fit.asthma, asthma.resfit)
+wt.asthma <- 1/asthma.resfit.lm$fitted.values^2
+length(total.asthma.pos$Period)
+total.asthma.pos <- subset(total.asthma.pos, GDP.per.capita != "NA")
+total.asthma.pos <- cbind(total.asthma.pos, wt.asthma)
+wls.asthma <- lmer(Age.standardized.death.rate.per.100.000.standard.population^asthma.power
+                    ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value)
+                    + (0 + Sex|Value) + (0 + Period|Value), total.asthma.pos, weights = wt.asthma)
+summary(wls.asthma)
+```
+
+### RHD
+
+```{r}
+bartlett.test((total.rheum$Age.standardized.death.rate.per.100.000.standard.population)^rheum.power ~ total.rheum$Value)
+bartlett.test((total.rheum$Age.standardized.death.rate.per.100.000.standard.population)^rheum.power ~ total.rheum$GDP.per.capita)
+bartlett.test((total.rheum$Age.standardized.death.rate.per.100.000.standard.population)^rheum.power ~ total.rheum$Period)
+summ.rheum.t <- summary(model.rheum.trans)
+fit.rheum <- fitted(model.rheum.trans)
+rh.residuals <- summ.rheum.t$residuals
+rheum.resfit <- data.frame(rh.residuals, fit.rheum)
+rheum.resfit.lm <- lm(abs(rh.residuals) ~ fit.rheum, rheum.resfit)
+wt.rheum <- 1/(rheum.resfit.lm$fitted.values)^2
+total.rheum.pos <- subset(total.rheum.pos, GDP.per.capita != "NA")
+total.rheum.pos <- cbind(total.rheum.pos, wt.rheum)
+wls.rheum <- lmer(Age.standardized.death.rate.per.100.000.standard.population^rheum.power
+                    ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value)
+                    + (0 + Sex|Value) + (0 + Period|Value), total.rheum.pos, weights = wt.rheum)
+summary(wls.rheum)
+length(wt.rheum)
+```
+
+### HHD
+
+```{r}
+bartlett.test((total.hyper$Age.standardized.death.rate.per.100.000.standard.population)^hyper.power ~ total.hyper$Value, data = total.hyper)
+bartlett.test((total.hyper$Age.standardized.death.rate.per.100.000.standard.population)^hyper.power ~ total.hyper$GDP.per.capita)
+bartlett.test((total.hyper$Age.standardized.death.rate.per.100.000.standard.population)^hyper.power ~ total.hyper$Period)
+summ.hyper.t <- summary(model.hyper.trans)
+fit.hyper <- fitted(model.hyper.trans)
+hy.residuals <- summ.hyper.t$residuals
+hyper.resfit <- data.frame(hy.residuals, fit.hyper)
+hyper.resfit.lm <- lm(abs(hy.residuals) ~ fit.hyper, hyper.resfit)
+wt.hyper <- 1/(hyper.resfit.lm$fitted.values)^2
+total.hyper.pos <- subset(total.hyper.pos, GDP.per.capita != "NA")
+total.hyper.pos <- subset(total.hyper.pos, Age.standardized.death.rate.per.100.000.standard.population != "NA")
+total.hyper.pos <- subset(total.hyper.pos, Sex != "NA")
+total.hyper.pos <- subset(total.hyper.pos, Period != "NA")
+total.hyper.pos <- subset(total.hyper.pos, Value != "NA")
+total.hyper.pos <- cbind(total.hyper.pos, wt.hyper)
+
+wls.hyper <- lmer(Age.standardized.death.rate.per.100.000.standard.population^rheum.power
+                    ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value)
+                    + (0 + Sex|Value) + (0 + Period|Value), total.hyper.pos, weights = wt.hyper)
+summary(wls.hyper)
+```
+
+## Linearity
+
+### Asthma
+
+```{r}
+total.asthma.pos$Death.rate.transform <- (total.asthma.pos$Age.standardized.death.rate.per.100.000.standard.population)^asthma.power
+scatterplotmatrix <- scatterplotMatrix(~ Death.rate.transform + Value + GDP.per.capita + Period , total.asthma.pos, spread=FALSE, smoother.args=list(lty=2),
+main="Scatter Plot Matrix")
+scatterplotmatrix
+```
+
+### RHD
+
+```{r}
+total.rheum.pos$Death.rate.transform <- (total.rheum.pos$Age.standardized.death.rate.per.100.000.standard.population)^rheum.power
+length(total.rheum.pos$Death.rate.transform)
+scatterplotmatrix <- scatterplotMatrix(~ Death.rate.transform + Value + GDP.per.capita + Period , total.rheum.pos, spread=FALSE, smoother.args=list(lty=2),
+main="Scatter Plot Matrix")
+scatterplotmatrix
+```
+
+### HHD
+
+```{r}
+total.hyper.pos$Death.rate.transform <- (total.hyper.pos$Age.standardized.death.rate.per.100.000.standard.population)^rheum.power
+scatterplotmatrix <- scatterplotMatrix(~ Death.rate.transform + Value + GDP.per.capita + Period , total.hyper.pos, spread=FALSE, smoother.args=list(lty=2),
+main="Scatter Plot Matrix")
+scatterplotmatrix
+```
+
+
+## Influential Observations
+
+```{r}
+influencePlot(wls.asthma, id=list(method="identify"), main="Influence Plot",
+sub="Circle size is proportial to Cook's Distance" )
+influencePlot(wls.rheum, id=list(method="identify"), main="Influence Plot",
+sub="Circle size is proportial to Cook's Distance" )
+influencePlot(wls.hyper, id=list(method="identify"), main="Influence Plot",
+sub="Circle size is proportial to Cook's Distance" )
+outlierTest(wls.asthma)
+outlierTest(wls.rheum)
+outlierTest(wls.hyper)
+new.asthma <- total.asthma.pos[-959, ]
+new.rheum <- total.rheum.pos[-c(750, 1244, 716, 715, 636), ]
+new.hyper <- total.hyper.pos[-c(372, 1244), ]
+
+```
+## Results
+
+### Asthma
+
+```{r}
+asthma.final <- lmer(Age.standardized.death.rate.per.100.000.standard.population^asthma.power ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value) + (0 + Sex|Value) + (0 + Period|Value), new.asthma, weights = wt.asthma)
+
+anova(asthma.final)
+summ.asthma.final <- summary(asthma.final)
+coeff.asthma <- data.frame(summ.asthma.final$coefficients)
+coeff.asthma$p.value <- 2*(1-pnorm(abs(coeff.asthma$t.value)))
+coeff.asthma
+
+```
+
+### RHD 
+
+```{r}
+wt.rheum1 <- wt.rheum[-c(750, 1244, 716, 715, 636)]
+
+rheum.final <- lmer(Age.standardized.death.rate.per.100.000.standard.population^asthma.power ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value) + (0 + Sex|Value) + (0 + Period|Value), new.rheum, weights = wt.rheum1)
+
+anova(rheum.final)
+summ.rheum.final <- summary(rheum.final)
+coeff.rheum <- data.frame(summ.rheum.final$coefficients)
+coeff.rheum$p.value <- 2*(1-pnorm(abs(coeff.rheum$t.value)))
+pnorm(coeff.rheum$t.value)
+coeff.rheum
+```
+
+### HHD
+
+```{r}
+wt.hyper1 <- wt.hyper[-c(372, 1244)]
+
+hyper.final <- lmer(Age.standardized.death.rate.per.100.000.standard.population^asthma.power ~ Value + GDP.per.capita + Period + Sex + (0 + GDP.per.capita|Value) + (0 + Sex|Value) + (0 + Period|Value), new.hyper, weights = wt.hyper1)
+
+anova(hyper.final)
+summ.hyper.final <- summary(hyper.final)
+coeff.hyper <- data.frame(summ.hyper.final$coefficients)
+coeff.hyper$p.value <- 2*(1-pnorm(abs(coeff.hyper$t.value)))
+coeff.hyper
+```
+
+
+
