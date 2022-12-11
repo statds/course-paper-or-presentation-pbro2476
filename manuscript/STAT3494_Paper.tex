@@ -55,8 +55,8 @@
 \usepackage{amsthm}
 \usepackage[tight,footnotesize]{subfigure}
 \usepackage{graphicx}
+\usepackage{filecontents}
 \usepackage{parskip}
-\usepackage{lipsum}
 \usepackage{listings}
 \usepackage[margin=1.2in]{geometry}
 \usepackage[colorlinks=true]{hyperref}
@@ -258,7 +258,7 @@ had to be conducted.\par
 First, the normality assumption was checked using the
 Shapiro-Wilk Test of Normality. Performing this test on the dataset containing
 death rates from asthma yielded a test statistic of W = 0.83355
-(\begin{math}p<\end{math}2.2e-16).Performing this test on the dataset containing
+(\begin{math}p<\end{math}2.2e-16). Performing this test on the dataset containing
 death rates from rheumatic heart disease yielded a test statistic of W = 0.64097
 (\begin{math}p<\end{math}2.2e-16). Performing this test on the dataset containing
 death rates from hypertensive heart disease yielded a test statistic of
@@ -266,7 +266,7 @@ W = 0.32637 (\begin{math}p<\end{math}2.2e-16). This indicated that a power
 transformation of the response variable may be necessary. Applying the Box-Cox
 transformation to each of the mixed effects models yieled a power estimate of
 \begin{math}\lambda=0.02754374\end{math} (\autoref{fig:Figure 1}). Using this
-power transformation, a new linear mixed effects model was derived:
+power transformation, a new linear mixed effects modxel was derived:
 
 \[
   MOR^{\lambda} = \beta_{0} + \beta_{1}POL + \beta_{2}SEX + \beta_{3}TIME +\beta_{4}GDP
@@ -492,8 +492,8 @@ informing global public health and public policy practices. As mentioned before,
 the research pertaining to ambient PM2.5 air pollution's association with
 mortality has been equivocal, with some studies finding a significant association
 \citep{analitis2006short} and others finding no such significant association
-\citep{khojasteh2021long}. This study falls in the latter column, as no
-significant association was demonstrated between a country's average ambient
+\citep{khojasteh2021long}. This study falls in the former column, as
+significant associations were demonstrated between a country's average ambient
 PM2.5 air concentration and their age standardized death rate per 100,000 from
 asthma, rheumatic heart disease, and hypertensive heart disease.\par
 This study has several limitations. Firstly, data was only collected on the
@@ -511,8 +511,5 @@ rates from asthma, rheumatic heart disease or hypertensive heart disease. Despit
 these limitations, this study adds to the plethora of literature that exists on
 the subject of air pollution and mortality, helping to inform public health and
 public policy in the future.
-
-\bibliographystyle{../manuscript/STAT3494_refs}
-\bibliographystyle{chicago}
 
 \end{document}
